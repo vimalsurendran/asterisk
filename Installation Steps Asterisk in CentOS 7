@@ -1,0 +1,156 @@
+1. Install CentOS 7.4
+
+2. Check kernel packages version 
+   -> rpm -qa kernel*
+
+3. Install kernel-devel if not installed
+   -> yum install kernel-devel
+
+4. Check for version maching b/w kernel-devel and kernel package
+   -> rpm -qa kernel*
+
+5. If not matching update kernel
+   -> yum update kernel*
+
+6. Restart
+
+7. Delete old kernel
+   -> yum remove kernel kernel-3.10.0-693.el7.x86_64
+
+8. Install required packages
+   -> yum install gcc gcc-c++ bison openssl-devel libtermcap-devel ncurses-devel doxygen curl-devel newt-devel mlocate lynx tar wget nmap bzip2 mod_ssl crontabs speex speex-devel unixODBC unixODBC-devel libtool-ltdl libtool-ltdl-devel mysql-connector-odbc mysql mysql-devel mysql-server php-mysql php-mbstring php-mcrypt flex screen php-gd php-devel zip php-pear perl-ExtUtils-MakeMaker make yum-utils ncurses-devel texinfo pam-devel libtool rpm-build libxml2-devel openssl-devel ncurses-devel sqlite-devel libuuid-devel
+
+9. Converting to mp3 format from .wav
+   cd /usr/local
+   wget https://ftp.osuosl.org/pub/blfs/conglomeration/lame/lame-3.100.tar.gz
+   tar zxf lame-3.96.1.tar.gz
+   cd lame-3.96.1
+   ./configure
+   make
+   make install
+
+10. For mixing voice files (caller and called person voice. For voice recording)
+   yum install sox
+
+11. For click to call as per Muthu
+   cd /usr/local
+   wget http://www.cpan.org/modules/by-module/Mail/MIVKOVIC/Mail-Sendmail-0.79.tar.gz
+   tar zxf Mail-Sendmail-0.79.tar.gz
+   cd Mail-Sendmail-0.79
+   perl Makefile.PL
+   make all
+   make install
+
+Asterisk Installation
+1. Download Asterisk 13.23.1 - LTS
+   -> https://www.asterisk.org/downloads/asterisk/all-asterisk-versions
+2. Install Asterisk
+   -> cp /root/Downloads/asterisk-13-current.tar.gz /usr/src/
+   -> cd /usr/src
+   -> tar zxvf asterisk-13-current.tar.gz
+   -> cd asterisk-13.23.1/
+   -> make clean
+   -> ./configure
+      -> Error <configure: *** Please install the 'libjansson' development package>
+      -> Install libjansson
+         -> http://www.digip.org/jansson/releases/jansson-2.10.tar.gz
+         -> ./configure, make , make install
+   -> ./configure
+   -> make menuselect
+   		->Select the required packages  
+   -> make
+   -> make install
+   -> make samples
+   -> make config
+3. Allow required ports in Firewall
+   -> Run in terminal <firewall-config>
+   -> Ports -> Add -> 5060(udp)
+                      10000-20000(udp)
+
+                      OR
+                      disable firewall
+
+
+
+
+
+
+
+
+##############################################################################################
+22/10/2018
+ENABLING PTHREADS IN PHP 7.X
+##############################################################################################
+
+ Installing PHP 7.2.11 in CentOS 7.4 with Pthreads enabled
+Installing PHP 7.2.11 in CentOS 7.4 with pthreads enabled
+
+This steps are meant for PHP CLI threading applications.  So web related appications are not installed along with.
+
+OS Version: CentOS Linux release 7.4.1708 (Core)
+
+First we need to install  PHP. Version used is php-7.2.11
+
+1. Download php-7.2.11.tar.gz source from http://php.net/get/php-7.2.11.tar.gz/from/a/mirror
+2. Extract to /usr/src
+ 
+3. cd /usr/src/php-7.2.11
+4. ./configure --with-config-file-path=/usr/local/lib --with-tsrm-pthreads --enable-pthreads=shared --enable-maintainer-zts  --enable-sockets
+5. ./configure
+6. make
+7. make test
+8. make install
+9. To see the php version installed
+    php -v
+
+Now we need to install Pthreads. Source is taken from Github.
+
+1. Download from https://github.com/krakjoe/pthreads.git
+2. Extract to /usr/src/php-7.2.11/ext
+3. This step may not be required, but this is how it got worked for me and i didnt tried the other way.      Rename the extracted file from pthreads-master to pthreads.
+      mv /usr/src/php-7.2.11/pthreads-master /usr/src/php-7.2.11/pthreads
+4. cd /usr/src/php-7.2.11/pthreads
+5. phpize
+6. make
+7. make test
+8. make install
+
+Now we require to Rebuild our PHP installation
+
+1. cd /usr/src/php-7.2.11
+2. make clean
+3. rm -f configure && ./buildconf --force
+4. ./configure --with-config-file-path=/usr/local/lib --with-tsrm-pthreads --enable-pthreads=shared --enable-maintainer-zts  --enable-sockets
+5. make
+6. make test
+7. make install
+   At end of make install note this path
+    Installing shared extensions:     /usr/local/lib/php/extensions/no-debug-zts-20170718/
+
+Next is the important and final step, to edit the configuration file (php.ini)
+1. Give command -> php --ini
+   Output ->
+    Configuration File (php.ini) Path: /usr/local/lib
+    Loaded Configuration File:         (none)
+    Scan for additional .ini files in: (none)
+    Additional .ini files parsed:      (none)
+
+2. Copy file from /usr/src/php-7.2.11 to /usr/local/lib and rename the file to php.ini
+    cp /usr/src/php-7.2.11/php.ini-development /usr/local/lib/php.ini
+
+3. Give command -> php --ini
+   Output ->
+    Configuration File (php.ini) Path: /usr/local/lib
+    Loaded Configuration File:         /usr/local/lib/php.ini
+    Scan for additional .ini files in: (none)
+    Additional .ini files parsed:      (none)
+
+   Now the Configuration file is loaded
+
+4. Add this line to /usr/local/lib/php.ini below
+    extension=/usr/local/lib/php/extensions/no-debug-zts-20170718/pthreads.so
+
+
+5.  Shows the modules loaded
+    -> php -m
+    In the loaded modules you shoud be able to see the pthreads
